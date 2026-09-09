@@ -24,10 +24,6 @@ Each directory under [`patterns/`](patterns/) is one canonical, minimal scenario
 
 CI ([`scripts/validate.mjs`](scripts/validate.mjs)) enforces the machine-checkable part of this bar on every commit.
 
-## Contributing
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) — the short version: build the scenario in Make, export it, run `scripts/sanitize.mjs`, add an `index.json` entry, and open a PR.
-
 ## Related
 
 - [Make blueprint guide for LLMs](https://www.make.com/blueprint.md) — the authoring rules these blueprints follow
