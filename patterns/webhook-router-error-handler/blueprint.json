@@ -1,0 +1,120 @@
+{
+  "name": "Lead intake — webhook, router, HTTP",
+  "description": "Receives a lead via webhook. Hot leads (score > 50) are POSTed to an external API; all leads are stored in a variable for downstream use.",
+  "flow": [
+    {
+      "id": 1,
+      "module": "gateway:CustomWebHook",
+      "version": 1,
+      "parameters": {},
+      "mapper": {},
+      "metadata": {
+        "designer": {
+          "x": 0,
+          "y": 150
+        }
+      }
+    },
+    {
+      "id": 2,
+      "module": "builtin:BasicRouter",
+      "version": 1,
+      "mapper": null,
+      "metadata": {
+        "designer": {
+          "x": 300,
+          "y": 150
+        }
+      },
+      "routes": [
+        {
+          "flow": [
+            {
+              "id": 3,
+              "module": "http:MakeRequest",
+              "version": 4,
+              "parameters": {
+                "authenticationType": "noAuth"
+              },
+              "filter": {
+                "name": "Hot leads only",
+                "conditions": [
+                  [
+                    {
+                      "a": "{{1.score}}",
+                      "o": "number:greater",
+                      "b": "50"
+                    }
+                  ]
+                ]
+              },
+              "mapper": {
+                "url": "https://api.example.com/hot-leads",
+                "method": "post",
+                "headers": [],
+                "contentType": "json",
+                "parseResponse": true,
+                "queryParameters": [],
+                "inputMethod": "jsonString",
+                "jsonStringBodyContent": "{\"email\": \"{{1.email}}\", \"name\": \"{{1.name}}\", \"score\": {{1.score}}, \"received\": \"{{formatDate(now; \"YYYY-MM-DDTHH:mm:ssZ\")}}\"}"
+              },
+              "metadata": {
+                "designer": {
+                  "x": 600,
+                  "y": 0
+                }
+              },
+              "onerror": [
+                {
+                  "id": 5,
+                  "module": "builtin:Ignore",
+                  "version": 1,
+                  "metadata": {
+                    "designer": {
+                      "x": 900,
+                      "y": -150
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "flow": [
+            {
+              "id": 4,
+              "module": "util:SetVariable2",
+              "version": 1,
+              "parameters": {},
+              "mapper": {
+                "name": "lastLeadEmail",
+                "scope": "execution",
+                "value": "{{1.email}}"
+              },
+              "metadata": {
+                "designer": {
+                  "x": 600,
+                  "y": 300
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "version": 1,
+    "scenario": {
+      "roundtrips": 1,
+      "maxErrors": 3,
+      "autoCommit": true,
+      "autoCommitTriggerLast": true,
+      "freshVariables": false
+    },
+    "designer": {
+      "orphans": []
+    }
+  }
+}

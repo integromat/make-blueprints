@@ -1,0 +1,103 @@
+{
+  "name": "Data store dedupe",
+  "description": "Processes each incoming record exactly once: checks a Make data store for the record's key, and only when it does not exist yet stores it and forwards it. The classic idempotency pattern for webhooks and polling sources that can deliver duplicates. After import, select or create a data store in modules 2 and 3.",
+  "flow": [
+    {
+      "id": 1,
+      "module": "gateway:CustomWebHook",
+      "version": 1,
+      "parameters": {},
+      "mapper": {},
+      "metadata": {
+        "designer": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "id": 2,
+      "module": "datastore:ExistRecord",
+      "version": 1,
+      "parameters": {},
+      "mapper": {
+        "key": "{{1.id}}"
+      },
+      "metadata": {
+        "designer": {
+          "x": 300,
+          "y": 0
+        }
+      }
+    },
+    {
+      "id": 3,
+      "module": "datastore:AddRecord",
+      "version": 1,
+      "parameters": {},
+      "filter": {
+        "name": "Not seen before",
+        "conditions": [
+          [
+            {
+              "a": "{{2.exist}}",
+              "o": "boolean:equal",
+              "b": "false"
+            }
+          ]
+        ]
+      },
+      "mapper": {
+        "key": "{{1.id}}",
+        "data": {
+          "email": "{{1.email}}",
+          "processedAt": "{{now}}"
+        },
+        "overwrite": false
+      },
+      "metadata": {
+        "designer": {
+          "x": 600,
+          "y": 0
+        }
+      }
+    },
+    {
+      "id": 4,
+      "module": "http:MakeRequest",
+      "version": 4,
+      "parameters": {
+        "authenticationType": "noAuth"
+      },
+      "mapper": {
+        "url": "https://api.example.com/new-records",
+        "method": "post",
+        "headers": [],
+        "contentType": "json",
+        "parseResponse": true,
+        "queryParameters": [],
+        "inputMethod": "jsonString",
+        "jsonStringBodyContent": "{\"id\": \"{{1.id}}\", \"email\": \"{{1.email}}\"}"
+      },
+      "metadata": {
+        "designer": {
+          "x": 900,
+          "y": 0
+        }
+      }
+    }
+  ],
+  "metadata": {
+    "version": 1,
+    "scenario": {
+      "roundtrips": 1,
+      "maxErrors": 3,
+      "autoCommit": true,
+      "autoCommitTriggerLast": true,
+      "freshVariables": false
+    },
+    "designer": {
+      "orphans": []
+    }
+  }
+}

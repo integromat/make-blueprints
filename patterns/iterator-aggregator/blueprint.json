@@ -1,0 +1,103 @@
+{
+  "name": "Iterator and Aggregator",
+  "description": "Receives an order with an array of items, processes each item individually, then recombines everything into a single HTTP request. Demonstrates the open-loop/close-loop pair: Iterator (builtin:BasicFeeder) splits an array into bundles, Aggregator (builtin:BasicAggregator) merges bundles back, with its feeder pointing at the module that opened the loop.",
+  "flow": [
+    {
+      "id": 1,
+      "module": "gateway:CustomWebHook",
+      "version": 1,
+      "parameters": {},
+      "mapper": {},
+      "metadata": {
+        "designer": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "id": 2,
+      "module": "builtin:BasicFeeder",
+      "version": 1,
+      "parameters": {},
+      "mapper": {
+        "array": "{{1.items}}"
+      },
+      "metadata": {
+        "designer": {
+          "x": 300,
+          "y": 0
+        }
+      }
+    },
+    {
+      "id": 3,
+      "module": "util:ComposeTransformer",
+      "version": 1,
+      "parameters": {},
+      "mapper": {
+        "value": "{{2.name}} × {{2.qty}}"
+      },
+      "metadata": {
+        "designer": {
+          "x": 600,
+          "y": 0
+        }
+      }
+    },
+    {
+      "id": 4,
+      "module": "builtin:BasicAggregator",
+      "version": 1,
+      "parameters": {
+        "feeder": 2
+      },
+      "mapper": {
+        "line": "{{3.value}}"
+      },
+      "metadata": {
+        "designer": {
+          "x": 900,
+          "y": 0
+        }
+      }
+    },
+    {
+      "id": 5,
+      "module": "http:MakeRequest",
+      "version": 4,
+      "parameters": {
+        "authenticationType": "noAuth"
+      },
+      "mapper": {
+        "url": "https://api.example.com/order-summaries",
+        "method": "post",
+        "headers": [],
+        "contentType": "json",
+        "parseResponse": true,
+        "queryParameters": [],
+        "inputMethod": "jsonString",
+        "jsonStringBodyContent": "{\"summary\": \"{{join(map(4.array; \"line\"); \", \")}}\"}"
+      },
+      "metadata": {
+        "designer": {
+          "x": 1200,
+          "y": 0
+        }
+      }
+    }
+  ],
+  "metadata": {
+    "version": 1,
+    "scenario": {
+      "roundtrips": 1,
+      "maxErrors": 3,
+      "autoCommit": true,
+      "autoCommitTriggerLast": true,
+      "freshVariables": false
+    },
+    "designer": {
+      "orphans": []
+    }
+  }
+}

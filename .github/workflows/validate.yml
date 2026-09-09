@@ -1,0 +1,26 @@
+name: validate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Validate blueprints, index.json and INDEX.md
+        run: node scripts/validate.mjs
+      # Live validation against Make's public blueprint-validation endpoint
+      # (module identifiers checked against the real app catalog). Activates
+      # once the MAKE_ZONE repository variable is set to a zone that has the
+      # endpoint enabled — no secrets needed, the endpoint is unauthenticated.
+      - name: Validate module identifiers against the Make app catalog
+        if: vars.MAKE_ZONE != ''
+        run: node scripts/validate-live.mjs
+        env:
+          MAKE_ZONE: ${{ vars.MAKE_ZONE }}

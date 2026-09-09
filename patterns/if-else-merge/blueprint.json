@@ -1,0 +1,96 @@
+{
+  "name": "If-else with merge",
+  "description": "Branches on a condition with builtin:BasicIfElse and joins both branches back into one flow with builtin:BasicMerge. Unlike a router, if-else evaluates branches in order, executes exactly one, and can merge back into the main sequence.",
+  "flow": [
+    {
+      "id": 1,
+      "module": "gateway:CustomWebHook",
+      "version": 1,
+      "parameters": {},
+      "mapper": {},
+      "metadata": { "designer": { "x": 0, "y": 150 } }
+    },
+    {
+      "id": 2,
+      "module": "builtin:BasicIfElse",
+      "version": 1,
+      "mapper": null,
+      "branches": [
+        {
+          "type": "condition",
+          "label": "High priority",
+          "conditions": [
+            [ { "a": "{{1.priority}}", "o": "text:equal", "b": "high" } ]
+          ],
+          "merge": true,
+          "flow": [
+            {
+              "id": 3,
+              "module": "util:ComposeTransformer",
+              "version": 1,
+              "parameters": {},
+              "mapper": { "value": "Expedited: order {{1.orderId}} ships today" },
+              "metadata": { "designer": { "x": 600, "y": 0 } }
+            }
+          ]
+        },
+        {
+          "type": "else",
+          "merge": true,
+          "flow": [
+            {
+              "id": 4,
+              "module": "util:ComposeTransformer",
+              "version": 1,
+              "parameters": {},
+              "mapper": { "value": "Standard: order {{1.orderId}} ships within 5 days" },
+              "metadata": { "designer": { "x": 600, "y": 300 } }
+            }
+          ]
+        }
+      ],
+      "metadata": { "designer": { "x": 300, "y": 150 } }
+    },
+    {
+      "id": 5,
+      "module": "builtin:BasicMerge",
+      "version": 1,
+      "mapper": null,
+      "outputs": [
+        {
+          "name": "message",
+          "mappings": [ "{{3.value}}", "{{4.value}}" ]
+        }
+      ],
+      "metadata": { "designer": { "x": 900, "y": 150 } }
+    },
+    {
+      "id": 6,
+      "module": "http:MakeRequest",
+      "version": 4,
+      "parameters": { "authenticationType": "noAuth" },
+      "mapper": {
+        "url": "https://api.example.com/notifications",
+        "method": "post",
+        "headers": [],
+        "queryParameters": [],
+        "contentType": "json",
+        "inputMethod": "jsonString",
+        "jsonStringBodyContent": "{\"orderId\": \"{{1.orderId}}\", \"message\": \"{{5.message}}\"}",
+        "parseResponse": true
+      },
+      "metadata": { "designer": { "x": 1200, "y": 150 } }
+    }
+  ],
+  "metadata": {
+    "version": 1,
+    "scenario": {
+      "roundtrips": 1,
+      "maxErrors": 3,
+      "autoCommit": true,
+      "autoCommitTriggerLast": true,
+      "freshVariables": false
+    },
+    "designer": { "orphans": [] }
+  }
+}

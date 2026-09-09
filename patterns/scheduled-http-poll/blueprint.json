@@ -1,0 +1,76 @@
+{
+  "name": "Scheduled status poll",
+  "description": "Fetches a status endpoint on a schedule and posts an alert when the status is not \"ok\". Demonstrates that scenarios without a trigger module start with any action module, and that scheduling is configured in the editor, not in the blueprint.",
+  "flow": [
+    {
+      "id": 1,
+      "module": "http:MakeRequest",
+      "version": 4,
+      "parameters": {
+        "authenticationType": "noAuth"
+      },
+      "mapper": {
+        "url": "https://status.example.com/api/v2/status.json",
+        "method": "get",
+        "headers": [],
+        "parseResponse": true,
+        "queryParameters": []
+      },
+      "metadata": {
+        "designer": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "id": 2,
+      "module": "http:MakeRequest",
+      "version": 4,
+      "parameters": {
+        "authenticationType": "noAuth"
+      },
+      "filter": {
+        "name": "Status is degraded",
+        "conditions": [
+          [
+            {
+              "a": "{{1.data.status}}",
+              "o": "text:notequal",
+              "b": "ok"
+            }
+          ]
+        ]
+      },
+      "mapper": {
+        "url": "https://api.example.com/alerts",
+        "method": "post",
+        "headers": [],
+        "contentType": "json",
+        "parseResponse": true,
+        "queryParameters": [],
+        "inputMethod": "jsonString",
+        "jsonStringBodyContent": "{\"message\": \"Status check degraded: {{1.data.status}}\", \"checkedAt\": \"{{formatDate(now; \"YYYY-MM-DDTHH:mm:ssZ\")}}\"}"
+      },
+      "metadata": {
+        "designer": {
+          "x": 300,
+          "y": 0
+        }
+      }
+    }
+  ],
+  "metadata": {
+    "version": 1,
+    "scenario": {
+      "roundtrips": 1,
+      "maxErrors": 3,
+      "autoCommit": true,
+      "autoCommitTriggerLast": true,
+      "freshVariables": false
+    },
+    "designer": {
+      "orphans": []
+    }
+  }
+}

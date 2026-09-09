@@ -1,0 +1,56 @@
+{
+  "name": "Webhook to HTTP",
+  "description": "Receives data via a webhook and forwards it to an external REST API. The minimal two-module linear scenario: instant trigger, one action.",
+  "flow": [
+    {
+      "id": 1,
+      "module": "gateway:CustomWebHook",
+      "version": 1,
+      "parameters": {},
+      "mapper": {},
+      "metadata": {
+        "designer": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "id": 2,
+      "module": "http:MakeRequest",
+      "version": 4,
+      "parameters": {
+        "authenticationType": "noAuth"
+      },
+      "mapper": {
+        "url": "https://api.example.com/leads",
+        "method": "post",
+        "headers": [],
+        "contentType": "json",
+        "parseResponse": true,
+        "queryParameters": [],
+        "inputMethod": "jsonString",
+        "jsonStringBodyContent": "{\"email\": \"{{1.email}}\", \"name\": \"{{1.name}}\"}"
+      },
+      "metadata": {
+        "designer": {
+          "x": 300,
+          "y": 0
+        }
+      }
+    }
+  ],
+  "metadata": {
+    "version": 1,
+    "scenario": {
+      "roundtrips": 1,
+      "maxErrors": 3,
+      "autoCommit": true,
+      "autoCommitTriggerLast": true,
+      "freshVariables": false
+    },
+    "designer": {
+      "orphans": []
+    }
+  }
+}

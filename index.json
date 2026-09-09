@@ -1,0 +1,82 @@
+[
+  {
+    "slug": "webhook-to-http",
+    "title": "Webhook to HTTP",
+    "description": "The minimal scenario: instant webhook trigger forwards incoming data to a REST API.",
+    "trigger": "instant",
+    "patterns": ["linear-flow"],
+    "modules": ["gateway:CustomWebHook", "http:MakeRequest"]
+  },
+  {
+    "slug": "scheduled-http-poll",
+    "title": "Scheduled status poll",
+    "description": "Polls an endpoint on a schedule and alerts on degraded status. No trigger module — any action can be first; scheduling lives outside the blueprint.",
+    "trigger": "scheduled",
+    "patterns": ["no-trigger", "filter"],
+    "modules": ["http:MakeRequest"]
+  },
+  {
+    "slug": "filter-gate",
+    "title": "Filter gate",
+    "description": "A simple yes/no condition implemented as a filter on the downstream module — the right tool when there is no second branch.",
+    "trigger": "instant",
+    "patterns": ["filter"],
+    "modules": ["gateway:CustomWebHook", "http:MakeRequest"]
+  },
+  {
+    "slug": "webhook-router-error-handler",
+    "title": "Lead intake — webhook, router, HTTP",
+    "description": "Router with a filtered route and a fallback route, plus an error handler on the API call. The canonical multi-branch scenario.",
+    "trigger": "instant",
+    "patterns": ["router", "filter", "error-handler", "variables"],
+    "modules": ["builtin:BasicRouter", "builtin:Ignore", "gateway:CustomWebHook", "http:MakeRequest", "util:SetVariable2"]
+  },
+  {
+    "slug": "if-else-merge",
+    "title": "If-else with merge",
+    "description": "Exclusive branching that converges again: builtin:BasicIfElse evaluates branches in order and executes exactly one; builtin:BasicMerge joins merge-flagged branches back into a single flow.",
+    "trigger": "instant",
+    "patterns": ["if-else", "merge", "branching"],
+    "modules": ["builtin:BasicIfElse", "builtin:BasicMerge", "gateway:CustomWebHook", "http:MakeRequest", "util:ComposeTransformer"]
+  },
+  {
+    "slug": "iterator-aggregator",
+    "title": "Iterator and Aggregator",
+    "description": "Splits an array into bundles, processes each item, and recombines into one result. The aggregator's feeder points at the module that opened the loop.",
+    "trigger": "instant",
+    "patterns": ["iterator", "aggregator"],
+    "modules": ["builtin:BasicAggregator", "builtin:BasicFeeder", "gateway:CustomWebHook", "http:MakeRequest", "util:ComposeTransformer"]
+  },
+  {
+    "slug": "error-handler-fallback",
+    "title": "Error handler with logging",
+    "description": "An error handler that is a full flow: log the failure to an external endpoint, then continue with builtin:Ignore.",
+    "trigger": "instant",
+    "patterns": ["error-handler"],
+    "modules": ["builtin:Ignore", "gateway:CustomWebHook", "http:MakeRequest"]
+  },
+  {
+    "slug": "webhook-api-endpoint",
+    "title": "Webhook API endpoint",
+    "description": "A synchronous HTTP API built from a scenario: webhook in, custom JSON response out via gateway:WebhookRespond.",
+    "trigger": "instant",
+    "patterns": ["webhook-response"],
+    "modules": ["gateway:CustomWebHook", "gateway:WebhookRespond"]
+  },
+  {
+    "slug": "datastore-dedupe",
+    "title": "Data store dedupe",
+    "description": "Idempotent processing: check a data store for the record's key and only process records not seen before.",
+    "trigger": "instant",
+    "patterns": ["datastore", "dedupe", "filter"],
+    "modules": ["datastore:AddRecord", "datastore:ExistRecord", "gateway:CustomWebHook", "http:MakeRequest"]
+  },
+  {
+    "slug": "rate-limited-loop",
+    "title": "Rate-limited loop",
+    "description": "One API call per array item with a sleep between calls to respect rate limits.",
+    "trigger": "instant",
+    "patterns": ["iterator", "rate-limit"],
+    "modules": ["builtin:BasicFeeder", "gateway:CustomWebHook", "http:MakeRequest", "util:FunctionSleep"]
+  }
+]
