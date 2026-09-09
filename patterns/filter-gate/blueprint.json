@@ -1,0 +1,68 @@
+{
+  "name": "Filter gate",
+  "description": "Continues only for bundles that match a condition — a simple yes/no gate implemented with a filter on the downstream module. Use this instead of a router whenever there is no second branch.",
+  "flow": [
+    {
+      "id": 1,
+      "module": "gateway:CustomWebHook",
+      "version": 1,
+      "parameters": {},
+      "mapper": {},
+      "metadata": {
+        "designer": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "id": 2,
+      "module": "http:MakeRequest",
+      "version": 4,
+      "parameters": {
+        "authenticationType": "noAuth"
+      },
+      "filter": {
+        "name": "Hot leads only",
+        "conditions": [
+          [
+            {
+              "a": "{{1.score}}",
+              "o": "number:greater",
+              "b": "50"
+            }
+          ]
+        ]
+      },
+      "mapper": {
+        "url": "https://api.example.com/hot-leads",
+        "method": "post",
+        "headers": [],
+        "contentType": "json",
+        "parseResponse": true,
+        "queryParameters": [],
+        "inputMethod": "jsonString",
+        "jsonStringBodyContent": "{\"email\": \"{{1.email}}\", \"score\": {{1.score}}}"
+      },
+      "metadata": {
+        "designer": {
+          "x": 300,
+          "y": 0
+        }
+      }
+    }
+  ],
+  "metadata": {
+    "version": 1,
+    "scenario": {
+      "roundtrips": 1,
+      "maxErrors": 3,
+      "autoCommit": true,
+      "autoCommitTriggerLast": true,
+      "freshVariables": false
+    },
+    "designer": {
+      "orphans": []
+    }
+  }
+}

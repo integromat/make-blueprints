@@ -1,0 +1,37 @@
+{
+  "name": "Webhook API endpoint",
+  "description": "Turns a scenario into a synchronous HTTP API: receives a request via webhook and returns a custom JSON response with gateway:WebhookRespond. Note the response headers use key/value pairs (unlike the HTTP module's name/value) and the status is a string.",
+  "flow": [
+    {
+      "id": 1,
+      "module": "gateway:CustomWebHook",
+      "version": 1,
+      "parameters": {},
+      "mapper": {},
+      "metadata": { "designer": { "x": 0, "y": 0 } }
+    },
+    {
+      "id": 2,
+      "module": "gateway:WebhookRespond",
+      "version": 1,
+      "parameters": {},
+      "mapper": {
+        "status": "200",
+        "body": "{\"ok\": true, \"received\": \"{{1.email}}\"}",
+        "headers": [ { "key": "content-type", "value": "application/json" } ]
+      },
+      "metadata": { "designer": { "x": 300, "y": 0 } }
+    }
+  ],
+  "metadata": {
+    "version": 1,
+    "scenario": {
+      "roundtrips": 1,
+      "maxErrors": 3,
+      "autoCommit": true,
+      "autoCommitTriggerLast": true,
+      "freshVariables": false
+    },
+    "designer": { "orphans": [] }
+  }
+}

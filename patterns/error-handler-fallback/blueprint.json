@@ -1,0 +1,93 @@
+{
+  "name": "Error handler with logging",
+  "description": "Posts an order to an API; when the call fails, an error-handler route logs the failure to a logging endpoint and then continues the scenario with builtin:Ignore. Demonstrates that an error handler can be a full flow, not just a single directive, and how to reference the failing module's error via {{N.error.message}}.",
+  "flow": [
+    {
+      "id": 1,
+      "module": "gateway:CustomWebHook",
+      "version": 1,
+      "parameters": {},
+      "mapper": {},
+      "metadata": {
+        "designer": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "id": 2,
+      "module": "http:MakeRequest",
+      "version": 4,
+      "parameters": {
+        "authenticationType": "noAuth"
+      },
+      "mapper": {
+        "url": "https://api.example.com/orders",
+        "method": "post",
+        "headers": [],
+        "contentType": "json",
+        "parseResponse": true,
+        "queryParameters": [],
+        "inputMethod": "jsonString",
+        "jsonStringBodyContent": "{\"orderId\": \"{{1.orderId}}\", \"amount\": {{1.amount}}}"
+      },
+      "metadata": {
+        "designer": {
+          "x": 300,
+          "y": 0
+        }
+      },
+      "onerror": [
+        {
+          "id": 3,
+          "module": "http:MakeRequest",
+          "version": 4,
+          "parameters": {
+            "authenticationType": "noAuth"
+          },
+          "mapper": {
+            "url": "https://api.example.com/logs",
+            "method": "post",
+            "headers": [],
+            "contentType": "json",
+            "parseResponse": false,
+            "queryParameters": [],
+            "inputMethod": "jsonString",
+            "jsonStringBodyContent": "{\"level\": \"error\", \"message\": \"{{2.error.message}}\", \"orderId\": \"{{1.orderId}}\"}"
+          },
+          "metadata": {
+            "designer": {
+              "x": 600,
+              "y": 300
+            }
+          }
+        },
+        {
+          "id": 4,
+          "module": "builtin:Ignore",
+          "version": 1,
+          "metadata": {
+            "designer": {
+              "x": 900,
+              "y": 300
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "version": 1,
+    "scenario": {
+      "roundtrips": 1,
+      "maxErrors": 3,
+      "autoCommit": true,
+      "autoCommitTriggerLast": true,
+      "freshVariables": false
+    },
+    "designer": {
+      "orphans": []
+    }
+  }
+}
